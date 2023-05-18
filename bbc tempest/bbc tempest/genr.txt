@@ -1,0 +1,74 @@
+   10 REM (c) 1984 Atari, Inc. All Rights Reserved
+   20 PLACE=&14CA:RAND=&21DF:claw=&409
+   30 pres=&1D59:Fore=&359:OSW=&FFEE
+   40 enable=&40F
+   50 FORA%=0TO2STEP2:P%=&2E23:[OPTA%
+   60 .centre EQUB28:EQUB29:EQUB29:EQUB25:EQUB24:EQUB28:EQUB24:EQUB24
+   70 .orig EQUW0:EQUB4:EQUB-1:EQUB-2:EQUW0:EQUB-9:EQUB-15:.now EQUD0:EQUD0:EQUB0
+   80 .SETCH LDY#8:.in LDAorig,Y:STAnow,Y:DEY:BPLin:LDX#8
+   90 .incr LDAnow,X:BEQzero
+  100 .once CLC:ADC&7C:STAnow,X
+  110 .zero DEX:BNEincr
+  120 TXA:LDX#3:STAenable
+  130 .swirlop0 STAswirlstat,X:DEX:BPLswirlop0
+  140 LDX&73:LDYcentre,X:LDX#5:JSRPLACE:LDX#3
+  150 .swirlop1 LDA&80,X:STAswirlbuf,X:DEX:BPLswirlop1:RTS
+  160 .limit EQUW0:EQUB3:EQUB2:EQUB1:EQUW0:EQUB1:EQUB1
+  170 .GEN JSRRAND:CMP#70:BCSgenout:AND#7:TAX:INX
+  180 .genm LDAnow,X:BMIagain:BEQagain
+  190 LDApres,X:CMPlimit,X:BCSgenout+1
+  200 DECnow,X:BNEgener
+  210 .again DEX:BPLgenm:BMIgenout
+  220 .gener STX&70
+  230 LDA&10:AND#7:TAX:LDA&DBE,X
+  240 BEQfound:CMP#5:BEQocup
+  250 .genout SEC:LDY#8:.total LDAnow,Y:BEQnexlo:BMInexlo:CLC:.out RTS:.nexlo DEY:BNEtotal:INCenable:RTS
+  260 .found LDA&70:STA&DBE,X:LDY#19:JSRPLACE:CLC:RTS
+  270 .ocup LDA&70:TAY:ASLA:ASLA:ASLA:ASLA
+  280 ORA#5:STA&DBE,X:TYA:LDY#19:JSRPLACE:CLC:RTS
+  290 .swirlpoint
+  300 EQUD0:EQUD0:EQUD0:EQUD0
+  310 .swirlstat EQUD0
+  320 .swirlbuf EQUD0
+  330 .flightX
+  340 EQUW-30:EQUW-30:EQUW10:EQUW-30
+  350 EQUW-20:EQUW8:EQUW15:EQUW10
+  360 EQUW-10:EQUW-8
+  370 .flightY
+  380 EQUW-10:EQUW-10:EQUW-30:EQUW-20
+  390 EQUW20:EQUW14:EQUW4:EQUW-10
+  400 EQUW-10:EQUW10
+  410 .SWIRL
+  420 LDA#3:STAFore:LDAenable:BNEupdate
+  430 LDA&10:CMP#100:BCSupdate:LDX#3
+  440 .swirlop2 LDAswirlstat,X:BEQempty
+  450 .keepin DEX:BPLswirlop2:BMIupdate
+  460 .empty LDA#9:STAswirlstat,X
+  470 TXA:ASLA:ASLA:TAX:LDY#0:LDA#25
+  480 JSROSW:LDA#69:JSROSW
+  490 .inswirl LDAswirlbuf,Y:JSROSW
+  500 STAswirlpoint,X:INX:INY:CPY#4
+  510 BNEinswirl:BEQupdate
+  520 .update LDX#3:.updal LDAswirlstat,X:BNEupda:.backup DEX:BPLupdal:RTS
+  530 .upda STX&71:DECswirlstat,X:BEQoffp
+  540 PHA:TXA:ASLA:ASLA:TAY:PLA:ASLA:TAX
+  550 JSRdrawit
+  560 LDAswirlpoint,Y:CLC:ADCflightX,X:STAswirlpoint,Y
+  570 LDAswirlpoint+1,Y:ADCflightX+1,X:STAswirlpoint+1,Y
+  580 LDAswirlpoint+2,Y:CLC:ADCflightY,X:STAswirlpoint+2,Y
+  590 LDAswirlpoint+3,Y:ADCflightY+1,X:STAswirlpoint+3,Y
+  600 JSRdrawit:LDX&71:JMPbackup
+  610 .offp TXA:ASLA:ASLA:TAY
+  620 .drawit LDA#25:JSROSW:LDA#69:JSROSW:LDAswirlpoint,Y:JSROSW:LDAswirlpoint+1,Y:JSROSW:LDAswirlpoint+2,Y:JSROSW:LDAswirlpoint+3,Y:JMP(&20E)
+  630 ]:NEXT
+  635 END
+  640 MODE5:*FX15,0
+  650 FORA%=0TO7:?&73=A%:CALL&119E:VDU26:VDU20:GCOL0,1:CALLSETCH
+  660 REPEATCALLSWIRL
+  670 *FX19
+  680 FORY%=0TO1000:NEXT
+  690 IFINKEY(-66)=-1:?enable=1
+  700 UNTILINKEY(-99)=-1
+  710 F=GET
+  720 NEXT
+
